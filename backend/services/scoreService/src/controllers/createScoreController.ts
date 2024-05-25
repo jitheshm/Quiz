@@ -17,50 +17,55 @@ interface IQuiz {
 }
 
 export default async (req: Request, res: Response) => {
-    const quizId: string = req.params.id
-    const answers: string[] = req.body.answers
-    const correlationId = uuidv4()
+    try {
+        const quizId: string = req.params.id
+        const answers: string[] = req.body.answers
+        const correlationId = uuidv4()
 
 
 
-    const consumer = await channel.consume(replyQueue, (msg) => {
-        console.log('consume')
-        let score = 0
+        const consumer = await channel.consume(replyQueue, (msg) => {
+            console.log('consume')
+            let score = 0
 
-        if (msg?.properties.correlationId == correlationId) {
-            const resObj: IQuiz = JSON.parse(msg?.content.toString())
-            resObj.questions.forEach((element, index) => {
-                if (element.correctAnswer == answers[index]) {
-                    score++
-                } else {
-                    score--
+            if (msg?.properties.correlationId == correlationId) {
+                const resObj: IQuiz = JSON.parse(msg?.content.toString())
+                resObj.questions.forEach((element, index) => {
+                    if (element.correctAnswer == answers[index]) {
+                        score++
+                    } else {
+                        score--
+                    }
+                });
+                let result = new Score({
+                    userId: (req as IRequest).user.userId,
+                    quizId: quizId,
+                    score: score
+                })
+                result.save()
+                const msgObj = {
+                    email: (req as IRequest).user.email,
+                    score: score,
+                    quizName: resObj.name
                 }
-            });
-            let result = new Score({
-                userId: (req as IRequest).user.userId,
-                quizId: quizId,
-                score: score
-            })
-            result.save()
-            const msgObj = {
-                email: (req as IRequest).user.email,
-                score: score,
-                quizName: resObj.name
+                channel.publish('notification', 'notification', Buffer.from(JSON.stringify(msgObj)));
+                res.status(200).json({ score: score, success: true })
+                channel.cancel(consumer.consumerTag)
+
+
             }
-            channel.publish('notification', 'notification', Buffer.from(JSON.stringify(msgObj)));
-            res.status(200).json({ score: score, success: true })
-            channel.cancel(consumer.consumerTag)
+        },
+            {
+                noAck: true
+            })
 
-
-        }
-    },
-        {
-            noAck: true
-        })
-
-    channel.sendToQueue('q&a', Buffer.from(JSON.stringify({ quizId: quizId })), {
-        correlationId: correlationId,
-        replyTo: replyQueue
-    });
+        channel.sendToQueue('q&a', Buffer.from(JSON.stringify({ quizId: quizId })), {
+            correlationId: correlationId,
+            replyTo: replyQueue
+        });
+    } catch (error) {
+        console.log(error);
+        
+    }
 
 }
