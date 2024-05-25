@@ -1,7 +1,7 @@
 import { Router } from "express";
+import authentication from "../middlewares/authentication";
+import createScoreController from "../controllers/createScoreController";
 const router = Router();
 
-router.get('/api/score', (req, res) => {
-    res.send('Score Service is up and running')
-})
+router.post('/api/score/quiz/:id', authentication, createScoreController)
 export default router
