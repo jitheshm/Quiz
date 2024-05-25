@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { channel, replyQueue } from "../config/connectRabbitMQ";
 import { v4 as uuidv4 } from 'uuid';
+import Score from "../Models/ScoreModel";
+import { IRequest } from "../middlewares/authentication";
 interface IQuiz {
     _id: string
     name: string;
@@ -34,7 +36,12 @@ export default async (req: Request, res: Response) => {
                     score--
                 }
             });
-
+            let result = new Score({
+                userId: (req as IRequest).user.userId,
+                quizId: quizId,
+                score: score
+            })
+            result.save()
             res.status(200).json({ score: score, success: true })
             channel.cancel(consumer.consumerTag)
 
