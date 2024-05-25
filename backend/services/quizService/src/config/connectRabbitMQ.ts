@@ -16,6 +16,7 @@ export default async () => {
             channel = await connection.createChannel()
 
             let q = await channel.assertQueue('', { exclusive: true })
+            channel.prefetch(1);
             replyQueue = q.queue;
             qa_consumer()
             console.log(">>>>>>>>>>>>>>>>>>>>>RabbitMQ connected");
