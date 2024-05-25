@@ -30,6 +30,13 @@ export default async (req: Request, res: Response) => {
 
             if (msg?.properties.correlationId == correlationId) {
                 const resObj: IQuiz = JSON.parse(msg?.content.toString())
+                console.log(resObj.questions.length, answers.length);
+                
+                if (resObj.questions.length !== answers.length) {
+                    res.status(400).json({ message: "Invalid answers" })
+                    channel.cancel(consumer.consumerTag)
+                    return
+                }
                 resObj.questions.forEach((element, index) => {
                     if (element.correctAnswer == answers[index]) {
                         score++
@@ -65,7 +72,7 @@ export default async (req: Request, res: Response) => {
         });
     } catch (error) {
         console.log(error);
-        
+
     }
 
 }
