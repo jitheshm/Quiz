@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { channel, replyQueue } from "../config/connectRabbitMQ";
 import { v4 as uuidv4 } from 'uuid';
 interface IQuiz {
+    _id: string
     name: string;
     category: string;
     qCount: number;

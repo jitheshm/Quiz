@@ -29,7 +29,7 @@ export default async (req: Request, res: Response, next: NextFunction) => {
         //here create new consumer for each request to listen for the response , we can create single consumer for consume all request is more efficient
 
         const consumer = await channel.consume(replyQueue, (msg) => {
-            console.log('consume')
+            console.log('consumer')
 
             if (msg?.properties.correlationId == correlationId) {
                 console.log(' [.] Got %s', msg?.content.toString());

@@ -93,6 +93,29 @@ services:
       - mongo
       - rabbitmq
 
+  scoreservice:
+    build: ./backend/services/scoreService
+    container_name: score-service
+    restart: unless-stopped
+    env_file:
+      - ./backend/services/scoreService/.env
+    ports:
+      - 3002:3002
+    networks: 
+      - quiz-network
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/services/scoreService
+          target: /app/
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./backend/services/scoreService/package.json
+    depends_on:
+      - mongo
+      - rabbitmq
+
   nginx:
     build: ./backend/gateway
     container_name: nginx
