@@ -42,6 +42,12 @@ export default async (req: Request, res: Response) => {
                 score: score
             })
             result.save()
+            const msgObj = {
+                email: (req as IRequest).user.email,
+                score: score,
+                quizName: resObj.name
+            }
+            channel.publish('notification', 'notification', Buffer.from(JSON.stringify(msgObj)));
             res.status(200).json({ score: score, success: true })
             channel.cancel(consumer.consumerTag)
 

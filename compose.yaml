@@ -116,6 +116,30 @@ services:
       - mongo
       - rabbitmq
 
+  notificationservice:
+    build: ./backend/services/notificationService
+    container_name: notification-service
+    restart: unless-stopped
+    env_file:
+      - ./backend/services/notificationService/.env
+    ports:
+      - 3003:3003
+    networks: 
+      - quiz-network
+    develop:
+      watch:
+        - action: sync
+          path: ./backend/services/notificationService
+          target: /app/
+          ignore:
+            - node_modules/
+        - action: rebuild
+          path: ./backend/services/notificationService/package.json
+    depends_on:
+      - mongo
+      - rabbitmq
+
+
   nginx:
     build: ./backend/gateway
     container_name: nginx
@@ -126,6 +150,8 @@ services:
     depends_on:
       - userauthservice
       - quizservice
+      - scoreservice
+
 
 
 
