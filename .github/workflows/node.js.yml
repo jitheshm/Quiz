@@ -1,0 +1,37 @@
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+        service: [quizService, notificationService, scoreService, userAuthService]
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Node.js ${{ matrix.node-version }} for ${{ matrix.service }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./backend/services/${{ matrix.service }}
+
+    - name: Build the service
+      run: npm run build --if-present
+      working-directory: ./backend/services/${{ matrix.service }}
+
+    - name: Test the service
+      run: npm test --if-present
+      working-directory: ./backend/services/${{ matrix.service }}
